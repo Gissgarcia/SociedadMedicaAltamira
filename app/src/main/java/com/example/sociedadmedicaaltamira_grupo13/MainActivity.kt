@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             SociedadMedicaAltamira_Grupo13Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "Gisel y Genesis",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
