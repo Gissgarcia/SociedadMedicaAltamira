@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.sociedadmedicaaltamira_grupo13.ui.theme.HomeScreen
 import com.example.sociedadmedicaaltamira_grupo13.ui.theme.SociedadMedicaAltamira_Grupo13Theme
 
 class MainActivity : ComponentActivity() {
@@ -18,13 +19,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+
             SociedadMedicaAltamira_Grupo13Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Gisel y Genesis",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                HomeScreen()
+
             }
         }
     }
