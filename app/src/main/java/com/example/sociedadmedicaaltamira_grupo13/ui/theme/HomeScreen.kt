@@ -2,6 +2,7 @@ package com.example.sociedadmedicaaltamira_grupo13.ui.theme
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,14 +20,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.sociedadmedicaaltamira_grupo13.R
-
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
     Scaffold (
         topBar = {
-            TopAppBar(title = { Text("Sociedad Medica Altamira") })
+            TopAppBar(
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center // 👈 centra el contenido
+                    ) {
+                        Text(
+                            text = "Sociedad Medica Altamira",
+                            color = Color(0xFF0D47A1) // Se cambio de color
+                        )
+                    }
+                }
+            )
         }
     ) { innerPadding ->
         Column (
@@ -34,20 +48,23 @@ fun HomeScreen() {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally //
         ) {
-            Text(text = "¡Bienvenido!")
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo App",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentScale = ContentScale.Fit
+            )
+            Text(text = "¡Sociedad Medica Altamira!",
+                    color= Color(0xFF0D47A1))
             Button(onClick = { /* acción futura */ }) {
-                Text("Click")
+                Text("Reserva")
             }
-           Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = "Logo App",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            contentScale = ContentScale.Fit
-           )
+
         }
     }
 }
