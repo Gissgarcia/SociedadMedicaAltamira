@@ -26,7 +26,7 @@ import com.example.sociedadmedicaaltamira_grupo13.R
 fun HomeScreen() {
     Scaffold (
         topBar = {
-            TopAppBar(title = { Text("Mi App Kotlin") })
+            TopAppBar(title = { Text("Sociedad Medica Altamira") })
         }
     ) { innerPadding ->
         Column (
@@ -34,11 +34,11 @@ fun HomeScreen() {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             Text(text = "¡Bienvenido!")
             Button(onClick = { /* acción futura */ }) {
-                Text("Presióname")
+                Text("Click")
             }
            Image(
             painter = painterResource(id = R.drawable.ic_launcher_background),
