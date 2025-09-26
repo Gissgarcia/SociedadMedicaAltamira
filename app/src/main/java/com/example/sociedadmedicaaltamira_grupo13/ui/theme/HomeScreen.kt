@@ -32,11 +32,11 @@ fun HomeScreen() {
                 title = {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center // centra el título principal
+                        contentAlignment = Alignment.Center // 👈 centra el contenido
                     ) {
                         Text(
                             text = "Sociedad Medica Altamira",
-                            color = Color(0xFF0D47A1) // Se cambio de color del título principal
+                            color = Color(0xFF0D47A1) // Se cambio de color
                         )
                     }
                 }
@@ -47,9 +47,9 @@ fun HomeScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally //Todos los elementos estarán centrados horizontalmente y cada elemento tendrá 32dp de separación vertical respecto al siguiente.
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally //
         ) {
             Image(
                 painter = painterResource(id = R.drawable.logo),
