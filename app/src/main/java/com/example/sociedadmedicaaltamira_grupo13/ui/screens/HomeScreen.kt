@@ -1,4 +1,4 @@
-package com.example.sociedadmedicaaltamira_grupo13.ui.theme
+package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
