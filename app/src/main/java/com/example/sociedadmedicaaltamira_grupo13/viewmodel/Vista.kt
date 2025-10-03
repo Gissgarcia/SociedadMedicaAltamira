@@ -16,7 +16,7 @@ class MainViewModel : ViewModel() {
     //'receiveAsFlow()':
 
     val navigationEvents: SharedFlow<NavigationEvent> = _navigationEvents.asSharedFlow()
-
+    //funcion que emite el evento de navegacion hacia la ruta deseada
     fun navigateTo(screen: Screen){
         CoroutineScope(context = Dispatchers.Main).launch {
             _navigationEvents.emit(value = NavigationEvent.PopBackStack)
