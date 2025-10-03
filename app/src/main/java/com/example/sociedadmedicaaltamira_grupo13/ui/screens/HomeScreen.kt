@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-
+import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
