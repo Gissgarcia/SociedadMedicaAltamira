@@ -1,5 +1,6 @@
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
