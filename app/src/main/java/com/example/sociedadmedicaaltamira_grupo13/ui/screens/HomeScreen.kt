@@ -99,7 +99,7 @@ fun HomeScreen(
                     contentScale = ContentScale.Fit
                 )
                 Text(
-                    text = "¡Sociedad Medica Altamira!",
+                    text = "¡Sociedad Médica Altamira!",
                     color = Color(0xFF0D47A1)
                 )
                 Button(onClick = { /* acción futura */ }) {

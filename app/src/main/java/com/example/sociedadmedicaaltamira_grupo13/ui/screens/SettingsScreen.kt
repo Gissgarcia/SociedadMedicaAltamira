@@ -52,7 +52,7 @@ fun SettingsScreen(
                 viewModel.navigateTo(Screen.Profile)    // Emitir evento para ir a perfil
             }
         ) {
-            Text(text = "Ir a Perfil")
+            Text(text = "Ir a reservas")
         }
     }
 }
