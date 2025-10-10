@@ -72,10 +72,21 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center // 👈 centra el contenido
+
                         ) {
-                            Text(
-                                text = "Sociedad Medica Altamira",
-                                color = Color(0xFF0D47A1) // Se cambio de color
+                            Image(
+                                // 1. Carga la imagen desde tus drawables (cambia R.drawable.tu_banner_logo)
+                                painter = painterResource(id = R.drawable.logo),
+                                contentDescription = "Logo de Sociedad Medica Altamira",
+                                modifier = Modifier
+                                    // Hace que la imagen ocupe el ancho máximo del título
+                                    .fillMaxWidth()
+                                    // Opcional: Dale una altura fija, ajusta este valor si es muy grande/pequeño
+                                    .height(200.dp)
+                                    // Quita padding horizontal para que la imagen se pegue a los bordes del title
+                                    .padding(horizontal = 0.dp),
+                                // 2. Escala la imagen para que se ajuste al tamaño sin deformarse (mejor para logos/banners)
+                                contentScale = ContentScale.Fit
                             )
                         }
                     }
@@ -91,7 +102,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally //
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.topappbanner),
                     contentDescription = "Logo App",
                     modifier = Modifier
                         .fillMaxWidth()
