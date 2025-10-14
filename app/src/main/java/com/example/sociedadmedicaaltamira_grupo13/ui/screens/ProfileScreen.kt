@@ -17,13 +17,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
+import com.example.sociedadmedicaaltamira_grupo13.ui.theme.SociedadMedicaAltamira_Grupo13Theme
+import androidx.compose.ui.tooling.preview.Preview
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +37,7 @@ fun ProfileScreen(
     viewModel: MainViewModel = viewModel()
 ) {
     val items = listOf(Screen.Home, Screen.Profile)
-    var selectedItem by remember { mutableStateOf(1) }
+    var selectedItem by rememberSaveable { mutableStateOf(1) }
 
     Scaffold(
         bottomBar = {
@@ -42,9 +47,21 @@ fun ProfileScreen(
                         selected = selectedItem == index,
                         onClick = {
                             selectedItem = index
-                            viewModel.navigateTo(screen)
+                            // Navegación directa con NavController (sin perder tu estructura original)
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
                         },
-                        label = { Text(text = screen.route) },
+                        label = {
+                            Text(
+                                text = when (screen) {
+                                    Screen.Home -> "Inicio"
+                                    Screen.Profile -> "Perfil"
+                                    else -> screen.route
+                                }
+                            )
+                        },
                         icon = {
                             Icon(
                                 imageVector = if (screen == Screen.Home) Icons.Filled.Home else Icons.Filled.Person,
@@ -66,6 +83,16 @@ fun ProfileScreen(
             Text(text = "¡Bienvenido al Perfil!")
         }
     }
+
+
 }
-
-
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun ProfileScreenPreview() {
+    SociedadMedicaAltamira_Grupo13Theme {
+        // NavController simulado para la vista previa
+        val navController = rememberNavController()
+        val viewModel: MainViewModel = viewModel()
+        ProfileScreen(navController = navController, viewModel = viewModel)
+    }
+}

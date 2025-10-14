@@ -35,6 +35,16 @@ import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,11 +56,14 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Ítems del bottom bar (mismos Screen que ya usas)
+    val items = listOf(Screen.Home, Screen.Profile)
+    var selectedItem by remember { mutableStateOf(0) } // 0 = Home
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-
                 Text("Menú", modifier = Modifier.padding(16.dp))
                 NavigationDrawerItem(
                     label = { Text("Ir a perfil") },
@@ -58,39 +71,61 @@ fun HomeScreen(
                     onClick = {
                         scope.launch { drawerState.close() }
                         viewModel.navigateTo(Screen.Profile)
+                        selectedItem = 1
                     }
                 )
             }
         }
-
     ) {
-
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
                         Box(
                             modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center // 👈 centra el contenido
-
+                            contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                // 1. Carga la imagen desde tus drawables (cambia R.drawable.tu_banner_logo)
                                 painter = painterResource(id = R.drawable.logo),
                                 contentDescription = "Logo de Sociedad Medica Altamira",
                                 modifier = Modifier
-                                    // Hace que la imagen ocupe el ancho máximo del título
                                     .fillMaxWidth()
-                                    // Opcional: Dale una altura fija, ajusta este valor si es muy grande/pequeño
                                     .height(200.dp)
-                                    // Quita padding horizontal para que la imagen se pegue a los bordes del title
                                     .padding(horizontal = 0.dp),
-                                // 2. Escala la imagen para que se ajuste al tamaño sin deformarse (mejor para logos/banners)
                                 contentScale = ContentScale.Fit
                             )
                         }
                     }
                 )
+            },
+            bottomBar = {
+                NavigationBar {
+                    items.forEachIndexed { index, screen ->
+                        NavigationBarItem(
+                            selected = selectedItem == index,
+                            onClick = {
+                                selectedItem = index
+                                // Usa tu patrón de navegación por ViewModel
+                                viewModel.navigateTo(screen)
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (screen == Screen.Home) Icons.Filled.Home else Icons.Filled.Person,
+                                    contentDescription = screen.route
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = when (screen) {
+                                        Screen.Home -> "Inicio"
+                                        Screen.Profile -> "Perfil"
+                                        else -> screen.route
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
             }
         ) { innerPadding ->
             Column(
@@ -99,7 +134,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally //
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.topappbanner),
@@ -116,11 +151,11 @@ fun HomeScreen(
                 Button(onClick = { /* acción futura */ }) {
                     Text("Reserva")
                 }
-
             }
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
