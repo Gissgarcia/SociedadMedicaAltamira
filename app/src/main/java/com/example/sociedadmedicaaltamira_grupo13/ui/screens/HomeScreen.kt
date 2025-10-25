@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
 import androidx.compose.foundation.Image
@@ -9,11 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-
-import androidx.compose.material.icons.filled.Home
-
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,13 +22,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.sociedadmedicaaltamira_grupo13.R
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
+import com.example.sociedadmedicaaltamira_grupo13.ui.theme.SociedadMedicaAltamira_Grupo13Theme
 
 /* ====== PALETA ====== */
 private val AzulPrimario = Color(0xFF0D47A1)
@@ -40,9 +39,8 @@ private val GrisFondo = Color(0xFFF5F7FB)
 
 /* =========================================================
    HomeScreen — Versión web-like (completa)
-   Banner + Servicios + Equipo + Opiniones + Footer
+   Banner + Servicios + Equipo + Opiniones
 ========================================================= */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -51,49 +49,22 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.White
+                ),
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo),
-                            contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            "Sociedad Médica Altamira",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            // Bottom bar simple (Inicio / Perfil) tipo navbar
-            NavigationBar {
-                var selected by remember { mutableStateOf(0) }
-                listOf(Screen.Home, Screen.Profile).forEachIndexed { idx, scr ->
-                    NavigationBarItem(
-                        selected = selected == idx,
-                        onClick = {
-                            selected = idx
-                            viewModel.navigateTo(scr)
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = if (scr == Screen.Home) Icons.Filled.Home else Icons.Filled.Person,
-                                contentDescription = scr.route
-                            )
-                        },
-                        label = { Text(if (scr == Screen.Home) "Inicio" else "Perfil") }
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(350.dp)
+                            .clip(CircleShape)
                     )
                 }
-            }
+            )
         }
+        // 👇 SIN bottomBar aquí. La barra inferior vive en MainActivity.
     ) { inner ->
         Column(
             modifier = Modifier
@@ -107,8 +78,8 @@ fun HomeScreen(
             HeroBanner(
                 title = "Rinología y Cirugía Plástica Facial",
                 subtitle = "Atención de excelencia con tecnología de vanguardia",
-                onReserva = { viewModel.navigateTo(Screen.Reserva) },
-                onContacto = { viewModel.navigateTo(Screen.Auth) }, // o tu pantalla de contacto
+                onReserva = { navController.navigate(Screen.Reserva.route) },   // ← antes usaba viewModel.navigateTo(...)
+                onContacto = { navController.navigate(Screen.Auth.route) },
             )
 
             // Sección Servicios
@@ -126,8 +97,8 @@ fun HomeScreen(
             DoctorsRow(
                 doctors = listOf(
                     DoctorItem("Dra. María Rojas", "Rinología"),
-                    DoctorItem("Dr. Vega", "Cirugía reconstructiva"),
-                    DoctorItem("Dra. Valdés", "Medicina estética")
+                    DoctorItem("Dra. De Vecchi", "Cirugía reconstructiva"),
+                    DoctorItem("Dr. Perez", "Medicina estética")
                 )
             )
 
@@ -139,9 +110,6 @@ fun HomeScreen(
                     "Resultados impecables y seguimiento de calidad."
                 )
             )
-
-            // Footer
-
 
             Spacer(Modifier.height(16.dp))
         }
@@ -205,7 +173,7 @@ private fun HeroBanner(
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
                 ) {
-                    Text("Iniciar sesion / Registrarse", color = Color.White)
+                    Text("Iniciar sesión / Registrarse", color = Color.White)
                 }
             }
         }
@@ -274,7 +242,7 @@ private fun DoctorsRow(doctors: List<DoctorItem>) {
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Avatar (usa imágenes reales si luego agregas drawables por médico)
+                    // Avatar (placeholder)
                     Box(
                         modifier = Modifier
                             .size(72.dp)
@@ -317,9 +285,6 @@ private fun Testimonials(quotes: List<String>) {
     }
 }
 
-/* -------- Footer -------- */
-
-
 /* -------- Botón primario -------- */
 @Composable
 private fun PrimaryButton(text: String, onClick: () -> Unit) {
@@ -330,5 +295,62 @@ private fun PrimaryButton(text: String, onClick: () -> Unit) {
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
     ) {
         Text(text)
+    }
+}
+
+/* =========================================================
+   PREVIEW — Sin ViewModel (seguro y funcional)
+========================================================= */
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    name = "Vista previa HomeScreen"
+)
+@Composable
+private fun HomeScreenPreview() {
+    SociedadMedicaAltamira_Grupo13Theme {
+        val navController = rememberNavController()
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.White,
+                        titleContentColor = Color.White
+                    ),
+                    title = {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(350.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+                )
+            }
+        ) { inner ->
+            Column(
+                modifier = Modifier
+                    .padding(inner)
+                    .fillMaxSize()
+                    .background(GrisFondo)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                HeroBanner(
+                    title = "Rinología y Cirugía Plástica Facial",
+                    subtitle = "Atención de excelencia con tecnología de vanguardia",
+                    onReserva = {},
+                    onContacto = {}
+                )
+                SectionTitle("Servicios")
+                ServicesRow(
+                    services = listOf(
+                        ServiceItem("Rinología avanzada", "Diagnóstico y tratamiento nasal"),
+                        ServiceItem("Cirugía plástica facial", "Funcional y estética"),
+                        ServiceItem("Procedimientos estéticos", "Mínimamente invasivos")
+                    )
+                )
+            }
+        }
     }
 }
