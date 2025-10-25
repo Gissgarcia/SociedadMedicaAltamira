@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Auth.route) {
                             AuthScreen(navController = navController)
                         }
+                        
                     }
                 }
             }
