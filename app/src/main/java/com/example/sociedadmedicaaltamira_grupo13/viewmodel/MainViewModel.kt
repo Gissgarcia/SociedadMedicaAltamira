@@ -1,37 +1,71 @@
 package com.example.sociedadmedicaaltamira_grupo13.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.sociedadmedicaaltamira_grupo13.navigation.NavigationEvent
+import com.example.sociedadmedicaaltamira_grupo13.model.User
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
+// ==========================
+// 🚀 EVENTOS DE NAVEGACIÓN
+// ==========================
+sealed class NavigationEvent {
+    data class NavigateTo(
+        val route: Screen,
+        val popUpToRoute: Screen? = null,
+        val inclusive: Boolean = false,
+        val singleTop: Boolean = true
+    ) : NavigationEvent()
+
+    data object PopBackStack : NavigationEvent()
+    data object NavigateUp : NavigationEvent()
+}
+
+// ==========================
+// 🎯 VIEWMODEL PRINCIPAL
+// ==========================
 class MainViewModel : ViewModel() {
 
-    // ✅ Flujo de eventos de navegación
-    private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
-    val navigationEvents = _navigationEvents.asSharedFlow()
+    // ====== 👤 USUARIO ACTUAL (de tu clase User.kt)
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
-    // ✅ Llamado desde los botones o pantallas
-    fun navigateTo(screen: Screen) {
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.NavigateTo(route = screen))
-        }
+    fun setCurrentUser(user: User?) {
+        _currentUser.value = user
+    }
+
+    // ====== 🔁 NAVEGACIÓN GLOBAL
+    private val _navigationEvents = MutableStateFlow<NavigationEvent?>(null)
+    val navigationEvents: StateFlow<NavigationEvent?> = _navigationEvents.asStateFlow()
+
+    fun navigateTo(
+        screen: Screen,
+        popUpTo: Screen? = null,
+        inclusive: Boolean = false,
+        singleTop: Boolean = true
+    ) {
+        _navigationEvents.value = NavigationEvent.NavigateTo(
+            route = screen,
+            popUpToRoute = popUpTo,
+            inclusive = inclusive,
+            singleTop = singleTop
+        )
+    }
+
+    fun navigateTo(event: NavigationEvent.NavigateTo) {
+        _navigationEvents.value = event
+    }
+
+    fun navigateBack() {
+        _navigationEvents.value = NavigationEvent.PopBackStack
     }
 
     fun navigateUp() {
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.NavigateUp)
-        }
+        _navigationEvents.value = NavigationEvent.NavigateUp
     }
 
-    fun popBack() {
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.PopBackStack)
-        }
+    fun clearNavigationEvent() {
+        _navigationEvents.value = null
     }
 }
-
-
