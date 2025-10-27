@@ -117,6 +117,9 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.ModoEspecial.route) {
                             ModoEspecialScreen(navController)
                         }
+                        composable(Screen.ReservaList.route) {
+                            ReservaListScreen(navController = navController)
+                        }
                     }
                 }
             }
