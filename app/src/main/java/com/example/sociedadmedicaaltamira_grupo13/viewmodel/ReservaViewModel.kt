@@ -1,4 +1,5 @@
 package com.example.sociedadmedicaaltamira_grupo13.viewmodel
+
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,13 +32,13 @@ class ReservaViewModel(app: Application) : AndroidViewModel(app) {
     fun update(field: String, value: String) {
         val s = _state.value
         _state.value = when (field) {
-            "nombre" -> s.copy(nombre = value)
-            "apellido" -> s.copy(apellido = value)
-            "edad" -> s.copy(edad = value.filter { it.isDigit() }.take(3))
-            "docTipo" -> s.copy(docTipo = value)
+            "nombre"    -> s.copy(nombre = value)
+            "apellido"  -> s.copy(apellido = value)
+            "edad"      -> s.copy(edad = value.filter { it.isDigit() }.take(3))
+            "docTipo"   -> s.copy(docTipo = value, docNumero = "") // ← limpia
             "docNumero" -> s.copy(docNumero = value.uppercase())
-            "email" -> s.copy(email = value)
-            else -> s
+            "email"     -> s.copy(email = value)
+            else        -> s
         }
     }
     fun updateFecha(millis: Long) { _state.value = _state.value.copy(fechaMillis = millis) }
@@ -70,9 +71,13 @@ class ReservaViewModel(app: Application) : AndroidViewModel(app) {
 
     fun guardar() = viewModelScope.launch {
         val errs = validar()
-        if (errs.isNotEmpty()) { _state.value = _state.value.copy(errors = errs, message = "Revisa los campos"); return@launch }
+        if (errs.isNotEmpty()) {
+            _state.value = _state.value.copy(errors = errs, message = "Revisa los campos")
+            return@launch
+        }
         val s = _state.value
         _state.value = s.copy(isSaving = true, errors = emptyMap(), message = null)
+
         repo.save(
             Reserva(
                 nombre = s.nombre.trim(),
@@ -84,6 +89,11 @@ class ReservaViewModel(app: Application) : AndroidViewModel(app) {
                 fechaMillis = s.fechaMillis!!
             )
         )
-        _state.value = _state.value.copy(isSaving = false, savedOk = true, message = "Reserva creada")
+
+        // reset minimal para volver a usar el form
+        _state.value = ReservaFormState(
+            message = "Reserva creada",
+            savedOk = true
+        )
     }
 }

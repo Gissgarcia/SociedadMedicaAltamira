@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
+
+
 }
 
 android {
@@ -76,4 +78,6 @@ dependencies {
 
     // Animations (si no está ya en el BOM de Compose que usas)
     implementation("androidx.compose.animation:animation:1.7.5")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }

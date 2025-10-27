@@ -1,16 +1,32 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
-
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,16 +39,14 @@ import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
+import androidx.compose.material3.ExposedDropdownMenuBox
+
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaScreen(
     navController: NavController,
@@ -47,7 +61,8 @@ fun ReservaScreen(
         onChange = { field, value -> vm.update(field, value) },
         onPickDate = { showDate = true },
         onSave = { vm.guardar() },
-        onBack = { navController.popBackStack() }
+        onBack = { navController.popBackStack() },
+        onViewList = { navController.navigate(com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen.ReservaList.route) }
     )
 
     // Evitar DatePicker en Preview
@@ -62,19 +77,21 @@ fun ReservaScreen(
                 }) { Text("OK") }
             },
             dismissButton = { TextButton(onClick = { showDate = false }) { Text("Cancelar") } }
-        ) { DatePicker(state = pickerState) }
+        ) {
+            DatePicker(state = pickerState)
+        }
     }
 }
 
 /** UI pura: apta para Preview */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReservaScreenContent(
     state: ReservaFormState,
     onChange: (String, String) -> Unit,
     onPickDate: () -> Unit,
     onSave: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onViewList: () -> Unit,            // 👈 NUEVO callback para navegar al listado
 ) {
     Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Nueva Reserva") }) }) { inner ->
         Column(
@@ -114,8 +131,7 @@ private fun ReservaScreenContent(
                 supportingText = { Text(state.errors["edad"] ?: "") }
             )
 
-
-            // -------- Documento: RUT / PASAPORTE (API moderna) --------
+            // -------- Documento: RUT / PASAPORTE --------
             var expanded by remember { mutableStateOf(false) }
 
             ExposedDropdownMenuBox(
@@ -124,13 +140,13 @@ private fun ReservaScreenContent(
             ) {
                 OutlinedTextField(
                     value = state.docTipo,
-                    onValueChange = {},
+                    onValueChange = {},                 // readOnly
                     readOnly = true,
                     label = { Text("Documento") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     modifier = Modifier
-                        .menuAnchor()           // ← clave para anclar correctamente el menú
                         .fillMaxWidth()
+                        .menuAnchor()                  // 👈 ancla correcta del menú
                 )
 
                 ExposedDropdownMenu(
@@ -147,9 +163,7 @@ private fun ReservaScreenContent(
                     )
                 }
             }
-
-
-            // ----------------------------------------------------------
+            // ------------------------------------------------
 
             OutlinedTextField(
                 value = state.docNumero,
@@ -171,6 +185,7 @@ private fun ReservaScreenContent(
             val fechaTexto = state.fechaMillis?.let {
                 SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date(it))
             } ?: "Seleccionar fecha"
+
             OutlinedButton(onClick = onPickDate) { Text(fechaTexto) }
             if (state.errors["fecha"] != null) {
                 Text(state.errors["fecha"]!!, color = MaterialTheme.colorScheme.error)
@@ -185,6 +200,17 @@ private fun ReservaScreenContent(
             ) {
                 if (state.isSaving) CircularProgressIndicator(Modifier.size(18.dp))
                 else Text("Confirmar reserva")
+            }
+
+            // 👇 NUEVO: botón para ver el listado de reservas
+            Button(
+                onClick = onViewList,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+            ) {
+                Text("Ver mis reservas", color = Color.White)
             }
 
             OutlinedButton(
@@ -211,7 +237,8 @@ fun ReservaScreenPreview() {
             onChange = { _, _ -> },
             onPickDate = {},
             onSave = {},
-            onBack = {}
+            onBack = {},
+            onViewList = {}   // preview sin navegación real
         )
     }
 }

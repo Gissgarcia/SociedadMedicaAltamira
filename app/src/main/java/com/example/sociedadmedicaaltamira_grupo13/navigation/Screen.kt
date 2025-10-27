@@ -12,6 +12,7 @@ sealed class Screen(val route: String) {
 
     // 🆕 Nueva pantalla: gestión de estado persistente (modo especial)
     data object ModoEspecial : Screen("modo_especial")
+    data object ReservaList : Screen("reservaList")
 
     // 🔹 Ejemplo de pantalla con argumento dinámico
     data class Detail(val itemId: String) : Screen("detail_page/{itemId}") {
