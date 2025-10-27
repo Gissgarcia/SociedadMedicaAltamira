@@ -1,58 +1,71 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
-
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
-import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
+import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ModoEspecialViewModel
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,        // Controlador de navegación para moverse entre pantallas
-    viewModel: MainViewModel             // ViewModel que centraliza la navegación (eventos)
+    navController: NavController,
+    viewModel: ModoEspecialViewModel = viewModel() // reutilizamos el VM del modo especial
 ) {
-    // Estructura visual centralizada
-    Column(
-        modifier = Modifier
-            .fillMaxSize()               // Ocupar todo el alto disponible
-            .padding(all = 16.dp),       // Margen interno general
-        verticalArrangement = Arrangement.Center,       // Centrar elementos verticalmente
-        horizontalAlignment = Alignment.CenterHorizontally // Centrar elementos horizontalmente
-    ) {
-        // Título o texto principal
-        Text(text = "Pantalla de Configuración (Settings)")
+    val s by viewModel.state.collectAsState()
 
-        Spacer(modifier = Modifier.height(24.dp))       // Espacio vertical
-
-        // Botón para volver al Home
-        Button(
-            onClick = {
-                viewModel.navigateTo(Screen.Home)       // Emitir evento de navegación al ViewModel
-            }
-        ) {
-            Text(text = "Volver al Inicio")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Configuración") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))       // Más espacio
-
-        // Botón para ir al Perfil
-        Button(
-            onClick = {
-                viewModel.navigateTo(Screen.Profile)    // Emitir evento para ir a perfil
-            }
+    ) { inner ->
+        Column(
+            modifier = Modifier
+                .padding(inner)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = "Ir a reservas")
+            // 1) Preferencia persistente (DataStore)
+            ListItem(
+                headlineContent = { Text("Modo especial") },
+                supportingContent = { Text("Activa funciones y estilos extra (se guarda en el dispositivo).") },
+                trailingContent = {
+                    Switch(
+                        checked = s.enabled,
+                        onCheckedChange = { checked ->
+                            if (checked != s.enabled) viewModel.toggle()
+                        }
+                    )
+                }
+            )
+            Divider()
+
+            // 2) Acción de sesión / navegación
+            Button(
+                onClick = {
+
+                    // por ahora, dejamos un regreso limpio a Home
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Volver al inicio") }
         }
     }
 }

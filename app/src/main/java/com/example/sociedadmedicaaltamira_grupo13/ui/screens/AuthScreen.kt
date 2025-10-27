@@ -1,12 +1,24 @@
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -16,19 +28,38 @@ import com.example.sociedadmedicaaltamira_grupo13.model.User
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.AuthViewModel
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
     navController: NavController,
-    viewModel: MainViewModel,                 // ← MainViewModel para setear usuario/navegación
-    vm: AuthViewModel = viewModel()           // ← Tu VM de auth para manejar el formulario
+    viewModel: MainViewModel,
+    vm: AuthViewModel = viewModel()
 ) {
     var isLogin by remember { mutableStateOf(true) }
     val s by vm.state.collectAsState()
 
+    // Paleta local
+    val AzulPrimario = Color(0xFF0D47A1)
+    val AzulClaro = Color(0xFF1976D2)
+
+    // Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(if (isLogin) "Iniciar Sesión" else "Registrarse") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text(if (isLogin) "Iniciar Sesión" else "Registrarse") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                SuccessSnackbar(data)
+            }
+        }
     ) { inner ->
         Column(
             Modifier
@@ -37,12 +68,35 @@ fun AuthScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // Toggle simple Login/Registro
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { isLogin = true }, enabled = !isLogin) { Text("Login") }
-                FilledTonalButton(onClick = { isLogin = false }, enabled = isLogin) { Text("Registro") }
+            // Toggle estilizado Login / Registro
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(
+                    onClick = { isLogin = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isLogin) AzulPrimario else Color.LightGray,
+                        contentColor = if (isLogin) Color.White else Color.DarkGray
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) { Text("Login") }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { isLogin = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (!isLogin) AzulClaro else Color.LightGray,
+                        contentColor = if (!isLogin) Color.White else Color.DarkGray
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) { Text("Registro") }
             }
 
+            // Campos
             if (!isLogin) {
                 OutlinedTextField(
                     value = s.name,
@@ -70,43 +124,129 @@ fun AuthScreen(
             )
 
             AnimatedVisibility(visible = s.message != null) {
-                Text(s.message ?: "", color = MaterialTheme.colorScheme.primary)
+                Text(s.message ?: "", color = AzulPrimario)
             }
 
-            // Acción principal (login o registro)
+            // Botón principal
             Button(
                 onClick = {
-                    // 1) Tu lógica (opcional) del AuthViewModel
+                    // Lógica de Auth
                     if (isLogin) vm.login() else vm.register()
 
-                    // 2) Construimos el usuario con los datos del formulario
+                    // Construimos usuario y guardamos en MainViewModel
                     val user = User(
                         name = if (isLogin) s.email.substringBefore("@") else s.name,
                         email = s.email,
-                        passwordHash = s.password // si tienes hash real, cámbialo aquí
+                        passwordHash = s.password
                     )
-
-                    // 3) Guardamos en MainViewModel
                     viewModel.setCurrentUser(user)
 
-                    // 4) Navegamos al Perfil
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Home.route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    // Mostrar snackbar y luego navegar
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "¡Bienvenido ${user.name}!",
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
+                        navController.navigate(Screen.Profile.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 enabled = s.email.isNotBlank() && s.password.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = AzulPrimario)
             ) {
-                if (s.isLoading) CircularProgressIndicator(Modifier.size(18.dp))
-                else Text(if (isLogin) "Entrar" else "Crear cuenta")
+                if (s.isLoading)
+                    CircularProgressIndicator(Modifier.size(18.dp), color = Color.White)
+                else
+                    Text(if (isLogin) "Entrar" else "Crear cuenta", color = Color.White)
             }
 
-            OutlinedButton(
+            // Botón volver (animado)
+            AnimatedBackButton(
                 onClick = { navController.popBackStack() },
+                color = AzulPrimario,
                 modifier = Modifier.align(Alignment.End)
-            ) { Text("Volver") }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnimatedBackButton(
+    onClick: () -> Unit,
+    color: Color,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(if (pressed) 0.96f else 1f, label = "scale")
+    val borderW by animateDpAsState(if (pressed) 2.dp else 1.dp, label = "bw")
+    val tint by animateColorAsState(
+        if (pressed) color.copy(alpha = 0.85f) else color,
+        label = "tint"
+    )
+
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        interactionSource = interaction,
+        modifier = modifier.graphicsLayer(scaleX = scale, scaleY = scale),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = tint),
+        border = BorderStroke(borderW, tint),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Volver"
+        )
+        Spacer(Modifier.width(6.dp))
+        Text("Volver")
+    }
+}
+
+/* Snackbar de éxito con ícono */
+@Composable
+private fun SuccessSnackbar(data: SnackbarData) {
+    val success = Color(0xFF2E7D32) // verde
+    val onSuccess = Color.White
+
+    Surface(
+        color = success,
+        contentColor = onSuccess,
+        shape = RoundedCornerShape(12.dp),
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = onSuccess
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            if (data.visuals.actionLabel != null) {
+                TextButton(onClick = { data.performAction() }) {
+                    Text(data.visuals.actionLabel!!, color = onSuccess)
+                }
+            }
         }
     }
 }

@@ -114,26 +114,26 @@ private fun ReservaScreenContent(
                 supportingText = { Text(state.errors["edad"] ?: "") }
             )
 
+
             // -------- Documento: RUT / PASAPORTE (API moderna) --------
             var expanded by remember { mutableStateOf(false) }
-            Box {
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
                 OutlinedTextField(
                     value = state.docTipo,
-                    onValueChange = {},           // readOnly
+                    onValueChange = {},
                     readOnly = true,
                     label = { Text("Documento") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     modifier = Modifier
+                        .menuAnchor()           // ← clave para anclar correctamente el menú
                         .fillMaxWidth()
-                        .clickable { expanded = true },   // abre el menú
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowDropDown,
-                            contentDescription = "Abrir"
-                        )
-                    }
                 )
 
-                DropdownMenu(
+                ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
@@ -147,6 +147,7 @@ private fun ReservaScreenContent(
                     )
                 }
             }
+
 
             // ----------------------------------------------------------
 

@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
                             ProfileScreen(navController = navController, viewModel = viewModel)
                         }
                         composable(Screen.Settings.route) {
-                            SettingsScreen(navController = navController, viewModel = viewModel)
+                            SettingsScreen(navController = navController)
                         }
                         composable(Screen.Reserva.route) {
                             ReservaScreen(navController = navController)
@@ -113,6 +113,9 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Auth.route) {
                             // 👇 Pasamos el MainViewModel para setear el usuario y navegar al perfil
                             AuthScreen(navController = navController, viewModel = viewModel)
+                        }
+                        composable(Screen.ModoEspecial.route) {
+                            ModoEspecialScreen(navController)
                         }
                     }
                 }

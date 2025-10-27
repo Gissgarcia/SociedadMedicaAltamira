@@ -72,4 +72,8 @@ dependencies {
 
     // Coil para cargar imagen/Uri en ProfileScreen
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Animations (si no está ya en el BOM de Compose que usas)
+    implementation("androidx.compose.animation:animation:1.7.5")
 }
