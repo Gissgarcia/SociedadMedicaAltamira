@@ -1,71 +1,75 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+package com.example.sociedadmedicaaltamira_grupo13.data
 
-package com.example.sociedadmedicaaltamira_grupo13.ui.screens
+import android.content.Context
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
-import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ModoEspecialViewModel
+// Delegate para obtener el DataStore desde cualquier Context
+val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
-@Composable
-fun SettingsScreen(
-    navController: NavController,
-    viewModel: ModoEspecialViewModel = viewModel() // reutilizamos el VM del modo especial
-) {
-    val s by viewModel.state.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Configuración") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
+data class UserSession(
+    val id: Long,
+    val name: String,
+    val email: String,
+    val role: String,
+    val token: String
+)
+
+class SettingsDataStore(private val context: Context) {
+
+    private val dataStore = context.settingsDataStore
+
+    // Keys de Preferences
+    private object Keys {
+        val USER_ID: Preferences.Key<Long> = longPreferencesKey("user_id")
+        val USER_NAME: Preferences.Key<String> = stringPreferencesKey("user_name")
+        val USER_EMAIL: Preferences.Key<String> = stringPreferencesKey("user_email")
+        val USER_ROLE: Preferences.Key<String> = stringPreferencesKey("user_role")
+        val USER_TOKEN: Preferences.Key<String> = stringPreferencesKey("user_token")
+    }
+
+
+    val userSessionFlow: Flow<UserSession?> = dataStore.data.map { prefs ->
+        val id = prefs[Keys.USER_ID] ?: return@map null
+        val name = prefs[Keys.USER_NAME] ?: ""
+        val email = prefs[Keys.USER_EMAIL] ?: ""
+        val role = prefs[Keys.USER_ROLE] ?: ""
+        val token = prefs[Keys.USER_TOKEN] ?: ""
+
+        UserSession(
+            id = id,
+            name = name,
+            email = email,
+            role = role,
+            token = token
+        )
+    }
+
+
+    suspend fun saveUserSession(session: UserSession) {
+        dataStore.edit { prefs ->
+            prefs[Keys.USER_ID] = session.id
+            prefs[Keys.USER_NAME] = session.name
+            prefs[Keys.USER_EMAIL] = session.email
+            prefs[Keys.USER_ROLE] = session.role
+            prefs[Keys.USER_TOKEN] = session.token
         }
-    ) { inner ->
-        Column(
-            modifier = Modifier
-                .padding(inner)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 1) Preferencia persistente (DataStore)
-            ListItem(
-                headlineContent = { Text("Modo especial") },
-                supportingContent = { Text("Activa funciones y estilos extra (se guarda en el dispositivo).") },
-                trailingContent = {
-                    Switch(
-                        checked = s.enabled,
-                        onCheckedChange = { checked ->
-                            if (checked != s.enabled) viewModel.toggle()
-                        }
-                    )
-                }
-            )
-            Divider()
+    }
 
-            // 2) Acción de sesión / navegación
-            Button(
-                onClick = {
 
-                    // por ahora, dejamos un regreso limpio a Home
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Volver al inicio") }
+    suspend fun clearUserSession() {
+        dataStore.edit { prefs ->
+            prefs.remove(Keys.USER_ID)
+            prefs.remove(Keys.USER_NAME)
+            prefs.remove(Keys.USER_EMAIL)
+            prefs.remove(Keys.USER_ROLE)
+            prefs.remove(Keys.USER_TOKEN)
         }
     }
 }

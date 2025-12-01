@@ -29,11 +29,11 @@ import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
 @Composable
 fun ReservaListScreen(
     navController: NavController,
-    mainViewModel: MainViewModel,
+    viewModel: MainViewModel,                    // <- nombre estándar
     reservaViewModel: ReservaViewModel = viewModel()
 ) {
     val uiState by reservaViewModel.uiState.collectAsState()
-    val currentUser = mainViewModel.currentUser.value
+    val currentUser = viewModel.currentUser.value
 
     // Admin si el rol viene como "ADMIN" desde la API
     val esAdmin = currentUser?.role == "ADMIN"

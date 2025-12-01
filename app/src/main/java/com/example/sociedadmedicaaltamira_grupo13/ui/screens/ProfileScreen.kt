@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 
 private val AzulPrimario = Color(0xFF0D47A1)
 private val GrisFondo = Color(0xFFF5F7FB)
+
 @Composable
 fun LoadingButton(
     text: String,
@@ -79,7 +80,7 @@ fun LoadingButton(
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    viewModel: MainViewModel
+    viewModel: MainViewModel        // <- nombre estándar
 ) {
     val user: User? by viewModel.currentUser.collectAsState(initial = null)
 
@@ -103,7 +104,7 @@ fun ProfileScreen(
         if (user != null) {
             // Foto fija desde drawable
             Image(
-                painter = painterResource(id = R.drawable.fotoperfil), // ← cambia al nombre real de tu imagen
+                painter = painterResource(id = R.drawable.fotoperfil),
                 contentDescription = "Foto de perfil",
                 modifier = Modifier
                     .size(110.dp)
@@ -146,8 +147,6 @@ fun ProfileScreen(
             colors = ButtonDefaults.buttonColors(containerColor = AzulPrimario),
             modifier = Modifier.fillMaxWidth(0.9f)
         ) {
-            // Pequeña espera para que se vea el spinner (opcional,
-            // si la navegación ya tarda, puedes quitar este delay)
             delay(600)
             navController.navigate(Screen.Auth.route)
         }

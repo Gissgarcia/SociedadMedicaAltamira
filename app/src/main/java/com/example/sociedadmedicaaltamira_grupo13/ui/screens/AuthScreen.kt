@@ -19,11 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sociedadmedicaaltamira_grupo13.data.SettingsDataStore
+import com.example.sociedadmedicaaltamira_grupo13.data.UserSession
 import com.example.sociedadmedicaaltamira_grupo13.model.User
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.AuthViewModel
@@ -48,6 +51,11 @@ fun AuthScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // DataStore para guardar la sesión
+    val context = LocalContext.current
+    val settingsDataStore = remember { SettingsDataStore(context) }
+
+    // Reaccionar a cambios en el mensaje del ViewModel (éxito / error)
     LaunchedEffect(s.message) {
         val msg = s.message ?: return@LaunchedEffect
 
@@ -69,13 +77,24 @@ fun AuthScreen(
             )
             viewModel.setCurrentUser(user)
 
-            // Mostrar snackbar de éxito y navegar
+            // Guardar sesión en DataStore + mostrar snackbar + navegar
             scope.launch {
+                settingsDataStore.saveUserSession(
+                    UserSession(
+                        id = user.id,
+                        name = user.name,
+                        email = user.email,
+                        role = user.role,
+                        token = user.token
+                    )
+                )
+
                 snackbarHostState.showSnackbar(
                     message = "¡Bienvenido ${user.name}!",
                     withDismissAction = true,
                     duration = SnackbarDuration.Short
                 )
+
                 navController.navigate(Screen.Profile.route) {
                     popUpTo(Screen.Home.route) { saveState = true }
                     launchSingleTop = true
@@ -180,7 +199,6 @@ fun AuthScreen(
             // Botón principal
             Button(
                 onClick = {
-                    // ⬇️ AHORA solo disparamos la acción del ViewModel
                     if (isLogin) vm.login() else vm.register()
                 },
                 enabled = s.email.isNotBlank() && s.password.isNotBlank(),
