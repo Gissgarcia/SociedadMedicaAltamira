@@ -77,13 +77,33 @@ dependencies {
 
     // --- OkHttp (logging) ---
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14")
+    implementation(libs.androidx.junit.ktx)
 
-    // --- Testing ---
+    // ─────────────────────────────────────────────
+    // Testing
+    // ─────────────────────────────────────────────
+
+    // Unit tests (JUnit 4)
     testImplementation(libs.junit)
+
+    // MockK para mocks
+    testImplementation("io.mockk:mockk:1.13.8")
+
+    // Coroutines test (para viewModelScope, Dispatchers.Main, etc.)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.0.0-alpha.14")
+
+    // Instrumented tests (Android)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Compose UI test helpers
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Herramientas de debug de Compose
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
