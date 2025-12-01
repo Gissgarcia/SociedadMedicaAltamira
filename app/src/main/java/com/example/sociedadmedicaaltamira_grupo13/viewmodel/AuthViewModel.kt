@@ -1,12 +1,11 @@
 package com.example.sociedadmedicaaltamira_grupo13.viewmodel
 
-
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sociedadmedicaaltamira_grupo13.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class AuthState(
@@ -15,37 +14,104 @@ data class AuthState(
     val password: String = "",
     val isLoading: Boolean = false,
     val message: String? = null,
-    val loggedInName: String? = null
+    // NUEVO: datos reales devueltos por la API
+    val userId: Long? = null,
+    val role: String? = null,
+    val token: String? = null
 )
 
-class AuthViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = AuthRepository()
+class AuthViewModel(
+    private val repository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthState())
-    val state: StateFlow<AuthState> = _state
+    val state: StateFlow<AuthState> = _state.asStateFlow()
 
-    fun updateName(v: String) { _state.value = _state.value.copy(name = v) }
-    fun updateEmail(v: String) { _state.value = _state.value.copy(email = v) }
-    fun updatePassword(v: String) { _state.value = _state.value.copy(password = v) }
-
-    fun register() = viewModelScope.launch {
-        val s = _state.value
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(s.email).matches()) {
-            _state.value = s.copy(message = "Email no válido"); return@launch
-        }
-        if (s.password.length < 6) { _state.value = s.copy(message = "Clave mínima 6 caracteres"); return@launch }
-
-        _state.value = s.copy(isLoading = true, message = null)
-        repo.register(s.name, s.email, s.password)
-            .onSuccess { _state.value = _state.value.copy(isLoading = false, message = "Registrado con éxito") }
-            .onFailure { _state.value = _state.value.copy(isLoading = false, message = it.message) }
+    // ----- setters que usa AuthScreen -----
+    fun updateName(value: String) {
+        _state.value = _state.value.copy(name = value)
     }
 
-    fun login() = viewModelScope.launch {
-        val s = _state.value
-        _state.value = s.copy(isLoading = true, message = null)
-        repo.login(s.email, s.password)
-            .onSuccess { _state.value = _state.value.copy(isLoading = false, loggedInName = it.name, message = "Bienvenido ${it.name}") }
-            .onFailure { _state.value = _state.value.copy(isLoading = false, message = it.message) }
+    fun updateEmail(value: String) {
+        _state.value = _state.value.copy(email = value)
+    }
+
+    fun updatePassword(value: String) {
+        _state.value = _state.value.copy(password = value)
+    }
+
+    fun clearMessage() {
+        _state.value = _state.value.copy(message = null)
+    }
+
+    // ----- LOGIN -----
+    fun login() {
+        val current = _state.value
+        if (current.email.isBlank() || current.password.isBlank()) {
+            _state.value = current.copy(message = "Correo y contraseña son obligatorios")
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = current.copy(isLoading = true, message = null)
+            try {
+                val response = repository.login(
+                    email = current.email,
+                    password = current.password
+                )
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    message = "Login exitoso",
+                    name = response.name,
+                    email = response.email,
+                    userId = response.userId,
+                    role = response.role,
+                    token = response.token
+                )
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    message = e.message ?: "Error al iniciar sesión"
+                )
+            }
+        }
+    }
+
+    // ----- REGISTRO -----
+    fun register() {
+        val current = _state.value
+        if (current.name.isBlank() || current.email.isBlank() || current.password.isBlank()) {
+            _state.value = current.copy(message = "Nombre, correo y contraseña son obligatorios")
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = current.copy(isLoading = true, message = null)
+            try {
+                val response = repository.register(
+                    nombre = current.name,
+                    email = current.email,
+                    password = current.password
+                )
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    message = "Registro exitoso",
+                    name = response.name,
+                    email = response.email,
+                    userId = response.userId,
+                    role = response.role,
+                    token = response.token
+                )
+
+            } catch (e: Exception) {
+                _state.value = current.copy(
+                    isLoading = false,
+                    message = e.message ?: "Error al registrar usuario"
+                )
+            }
+        }
     }
 }

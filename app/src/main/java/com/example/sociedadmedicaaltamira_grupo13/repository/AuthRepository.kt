@@ -1,26 +1,41 @@
 package com.example.sociedadmedicaaltamira_grupo13.repository
-import com.example.sociedadmedicaaltamira_grupo13.model.User
-import java.security.MessageDigest
 
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.RetrofitClient
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.LoginRequest
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.RegistroRequest
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.UsuarioResponse
+
+/**
+ * Habla con la API de usuario usando Retrofit.
+ * La UI nunca toca Retrofit directo, siempre pasa por aquí.
+ */
 class AuthRepository {
-    private fun hash(p: String) =
-        MessageDigest.getInstance("SHA-256").digest(p.toByteArray()).joinToString("") { "%02x".format(it) }
 
-    suspend fun register(name: String, email: String, pass: String): Result<Long> {
-        if (AppMemory.users.value.any { it.email.equals(email, ignoreCase = true) })
-            return Result.failure(IllegalArgumentException("Email ya registrado"))
-        val u = User(name = name.trim(), email = email.trim(), passwordHash = hash(pass))
-        AppMemory.addUser(u)
-        return Result.success(u.id)
+    private val usuarioApi = RetrofitClient.createUsuarioService()
+
+    suspend fun login(email: String, password: String): UsuarioResponse {
+        val request = LoginRequest(
+            email = email,
+            password = password
+        )
+        return usuarioApi.login(request)
     }
 
-    suspend fun login(email: String, pass: String) : Result<User> {
-        val h = hash(pass)
-        val u = AppMemory.users.value.firstOrNull { it.email.equals(email, true) }
-            ?: return Result.failure(IllegalArgumentException("Usuario no existe"))
-        return if (u.passwordHash == h) Result.success(u)
-        else Result.failure(IllegalArgumentException("Clave incorrecta"))
+    suspend fun register(
+        nombre: String,
+        email: String,
+        password: String
+    ): UsuarioResponse {
+        // Como tu pantalla solo pide nombre/email/password,
+        // llenamos los otros campos con vacío por ahora.
+        val request = RegistroRequest(
+            nombre = nombre,
+            apellido = "",
+            rut = "",
+            email = email,
+            telefono = "",
+            password = password
+        )
+        return usuarioApi.registrarUsuario(request)
     }
-
-    fun observeUsers() = AppMemory.users
 }

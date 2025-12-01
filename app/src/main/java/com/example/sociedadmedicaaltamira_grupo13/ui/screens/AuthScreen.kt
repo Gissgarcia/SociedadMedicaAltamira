@@ -48,6 +48,56 @@ fun AuthScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(s.message) {
+        val msg = s.message ?: return@LaunchedEffect
+
+        // Guardamos en variables locales para que Kotlin pueda hacer smart cast
+        val userId = s.userId
+        val role = s.role
+        val token = s.token
+
+        if (msg.contains("exitoso", ignoreCase = true) &&
+            userId != null && role != null && token != null
+        ) {
+            // Construimos usuario REAL con datos del backend
+            val user = User(
+                id = userId,
+                name = s.name,
+                email = s.email,
+                role = role,
+                token = token
+            )
+            viewModel.setCurrentUser(user)
+
+            // Mostrar snackbar de éxito y navegar
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "¡Bienvenido ${user.name}!",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+                navController.navigate(Screen.Profile.route) {
+                    popUpTo(Screen.Home.route) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        } else {
+            // Mensaje de error u otro mensaje que no sea "exitoso"
+            if (!msg.contains("exitoso", ignoreCase = true)) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = msg,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+
+        vm.clearMessage()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -130,30 +180,8 @@ fun AuthScreen(
             // Botón principal
             Button(
                 onClick = {
-                    // Lógica de Auth
+                    // ⬇️ AHORA solo disparamos la acción del ViewModel
                     if (isLogin) vm.login() else vm.register()
-
-                    // Construimos usuario y guardamos en MainViewModel
-                    val user = User(
-                        name = if (isLogin) s.email.substringBefore("@") else s.name,
-                        email = s.email,
-                        passwordHash = s.password
-                    )
-                    viewModel.setCurrentUser(user)
-
-                    // Mostrar snackbar y luego navegar
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "¡Bienvenido ${user.name}!",
-                            withDismissAction = true,
-                            duration = SnackbarDuration.Short
-                        )
-                        navController.navigate(Screen.Profile.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
                 },
                 enabled = s.email.isNotBlank() && s.password.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),

@@ -1,244 +1,150 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.sociedadmedicaaltamira_grupo13.ui.theme.SociedadMedicaAltamira_Grupo13Theme
-import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaFormState
-import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
-import androidx.compose.material3.ExposedDropdownMenuBox
+import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
+import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
+import kotlinx.coroutines.launch
 
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-
-
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaScreen(
     navController: NavController,
-    vm: ReservaViewModel = viewModel()
+    mainViewModel: MainViewModel,
+    reservaViewModel: ReservaViewModel = viewModel()
 ) {
-    val state by vm.state.collectAsState()
-    var showDate by remember { mutableStateOf(false) }
-    val isPreview = LocalInspectionMode.current
+    val uiState by reservaViewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    ReservaScreenContent(
-        state = state,
-        onChange = { field, value -> vm.update(field, value) },
-        onPickDate = { showDate = true },
-        onSave = { vm.guardar() },
-        onBack = { navController.popBackStack() },
-        onViewList = { navController.navigate(com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen.ReservaList.route) }
-    )
-
-    // Evitar DatePicker en Preview
-    if (showDate && !isPreview) {
-        val pickerState = rememberDatePickerState()
-        DatePickerDialog(
-            onDismissRequest = { showDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { vm.updateFecha(it) }
-                    showDate = false
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { showDate = false }) { Text("Cancelar") } }
-        ) {
-            DatePicker(state = pickerState)
+    // si tienes correo en el usuario logueado, lo puedes precargar
+    val currentUser = mainViewModel.currentUser.value
+    LaunchedEffect(currentUser) {
+        currentUser?.let {
+            reservaViewModel.onCorreoChange(it.email)
+            reservaViewModel.idUsuario = it.id   // ← id real del backend
         }
     }
-}
 
-/** UI pura: apta para Preview */
-@Composable
-private fun ReservaScreenContent(
-    state: ReservaFormState,
-    onChange: (String, String) -> Unit,
-    onPickDate: () -> Unit,
-    onSave: () -> Unit,
-    onBack: () -> Unit,
-    onViewList: () -> Unit,            // 👈 NUEVO callback para navegar al listado
-) {
-    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Nueva Reserva") }) }) { inner ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Nueva Reserva") }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { inner ->
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(inner)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.nombre,
-                    onValueChange = { onChange("nombre", it) },
-                    label = { Text("Nombre") },
-                    modifier = Modifier.weight(1f),
-                    isError = state.errors["nombre"] != null,
-                    supportingText = { Text(state.errors["nombre"] ?: "") }
-                )
-                OutlinedTextField(
-                    value = state.apellido,
-                    onValueChange = { onChange("apellido", it) },
-                    label = { Text("Apellido") },
-                    modifier = Modifier.weight(1f),
-                    isError = state.errors["apellido"] != null,
-                    supportingText = { Text(state.errors["apellido"] ?: "") }
-                )
-            }
 
             OutlinedTextField(
-                value = state.edad,
-                onValueChange = { onChange("edad", it) },
+                value = reservaViewModel.nombre,
+                onValueChange = reservaViewModel::onNombreChange,
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = reservaViewModel.apellido,
+                onValueChange = reservaViewModel::onApellidoChange,
+                label = { Text("Apellido") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = reservaViewModel.edad,
+                onValueChange = reservaViewModel::onEdadChange,
                 label = { Text("Edad") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = state.errors["edad"] != null,
-                supportingText = { Text(state.errors["edad"] ?: "") }
-            )
-
-            // -------- Documento: RUT / PASAPORTE --------
-            var expanded by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = state.docTipo,
-                    onValueChange = {},                 // readOnly
-                    readOnly = true,
-                    label = { Text("Documento") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()                  // 👈 ancla correcta del menú
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("RUT") },
-                        onClick = { onChange("docTipo", "RUT"); expanded = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("PASAPORTE") },
-                        onClick = { onChange("docTipo", "PASAPORTE"); expanded = false }
-                    )
-                }
-            }
-            // ------------------------------------------------
-
-            OutlinedTextField(
-                value = state.docNumero,
-                onValueChange = { onChange("docNumero", it) },
-                label = { Text(if (state.docTipo == "RUT") "RUT (12345678-5)" else "Pasaporte") },
-                isError = state.errors["docNumero"] != null,
-                supportingText = { Text(state.errors["docNumero"] ?: "") }
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = state.email,
-                onValueChange = { onChange("email", it) },
+                value = reservaViewModel.tipoDocumento,
+                onValueChange = reservaViewModel::onTipoDocumentoChange,
+                label = { Text("Tipo documento (RUT, Pasaporte, etc)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = reservaViewModel.numeroDocumento,
+                onValueChange = reservaViewModel::onNumeroDocumentoChange,
+                label = { Text("Número documento") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = reservaViewModel.correo,
+                onValueChange = reservaViewModel::onCorreoChange,
                 label = { Text("Correo") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                isError = state.errors["email"] != null,
-                supportingText = { Text(state.errors["email"] ?: "") }
+                modifier = Modifier.fillMaxWidth()
             )
 
-            val fechaTexto = state.fechaMillis?.let {
-                SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date(it))
-            } ?: "Seleccionar fecha"
+            OutlinedTextField(
+                value = reservaViewModel.fechaReserva,
+                onValueChange = reservaViewModel::onFechaReservaChange,
+                label = { Text("Fecha y hora (ej: 2025-12-10 10:00)") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            OutlinedButton(onClick = onPickDate) { Text(fechaTexto) }
-            if (state.errors["fecha"] != null) {
-                Text(state.errors["fecha"]!!, color = MaterialTheme.colorScheme.error)
+            OutlinedTextField(
+                value = reservaViewModel.especialidad,
+                onValueChange = reservaViewModel::onEspecialidadChange,
+                label = { Text("Especialidad") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (uiState.error != null) {
+                Text(uiState.error ?: "", color = Color.Red)
             }
-
-            state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
 
             Button(
-                onClick = onSave,
-                enabled = !state.isSaving,
+                onClick = {
+                    reservaViewModel.crearReserva()
+                },
+                enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (state.isSaving) CircularProgressIndicator(Modifier.size(18.dp))
-                else Text("Confirmar reserva")
+                if (uiState.isLoading)
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                else
+                    Text("Confirmar reserva")
             }
-
-            // 👇 NUEVO: botón para ver el listado de reservas
-            Button(
-                onClick = onViewList,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
-            ) {
-                Text("Ver mis reservas", color = Color.White)
-            }
-
-            OutlinedButton(
-                onClick = onBack,
-                modifier = Modifier.align(Alignment.End)
-            ) { Text("Volver") }
         }
     }
-}
 
-/* -------- PREVIEW -------- */
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ReservaScreenPreview() {
-    val fake = ReservaFormState(
-        nombre = "Ana", apellido = "Rojas", edad = "29",
-        docTipo = "RUT", docNumero = "12345678-5", email = "ana@demo.cl",
-        fechaMillis = System.currentTimeMillis(),
-        message = "Vista de ejemplo"
-    )
-    SociedadMedicaAltamira_Grupo13Theme {
-        ReservaScreenContent(
-            state = fake,
-            onChange = { _, _ -> },
-            onPickDate = {},
-            onSave = {},
-            onBack = {},
-            onViewList = {}   // preview sin navegación real
-        )
+    // Reacción a success / error
+    LaunchedEffect(uiState.successMessage, uiState.error) {
+        uiState.successMessage?.let { msg ->
+            scope.launch {
+                snackbarHostState.showSnackbar(msg)
+                reservaViewModel.clearMessages()
+                // después de crear, navega a lista de reservas (ajusta ruta según tu Screen)
+                navController.navigate(Screen.ReservaList.route)
+            }
+        }
+        uiState.error?.let { msg ->
+            scope.launch {
+                snackbarHostState.showSnackbar(msg)
+                reservaViewModel.clearMessages()
+            }
+        }
     }
 }
