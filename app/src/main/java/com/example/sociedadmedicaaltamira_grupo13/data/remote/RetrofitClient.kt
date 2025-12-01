@@ -7,7 +7,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // Para emulador Android (backend en tu PC)
     private const val BASE_URL_USUARIO = "http://10.0.2.2:8081/"
     private const val BASE_URL_RESERVA = "http://10.0.2.2:8083/"
 
@@ -15,6 +14,10 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    /**
+     * Si tokenProvider es != null, agrega el header:
+     * Authorization: Bearer <token>
+     */
     private fun getHttpClient(tokenProvider: (() -> String?)? = null): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
@@ -36,23 +39,23 @@ object RetrofitClient {
         return builder.build()
     }
 
+    // ---------- SERVICIO USUARIO (login / registro) ----------
     fun createUsuarioService(tokenProvider: (() -> String?)? = null): UsuarioApiService {
-        val retrofit = Retrofit.Builder()
+        return Retrofit.Builder()
             .baseUrl(BASE_URL_USUARIO)
-            .client(getHttpClient(tokenProvider))
+            .client(getHttpClient(tokenProvider))   // normalmente sin token
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
-        return retrofit.create(UsuarioApiService::class.java)
+            .create(UsuarioApiService::class.java)
     }
 
-    fun createReservaService(tokenProvider: (() -> String?)? = null): ReservaApiService {
-        val retrofit = Retrofit.Builder()
+    // ---------- SERVICIO RESERVA (requiere JWT) ----------
+    fun createReservaService(tokenProvider: (() -> String?)? = null): ReservaApiService =
+        Retrofit.Builder()
             .baseUrl(BASE_URL_RESERVA)
             .client(getHttpClient(tokenProvider))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
-        return retrofit.create(ReservaApiService::class.java)
-    }
+            .create(ReservaApiService::class.java)
 }
+

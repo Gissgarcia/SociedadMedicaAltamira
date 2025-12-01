@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
+import com.example.sociedadmedicaaltamira_grupo13.session.Session
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.MainViewModel
 import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
 import kotlinx.coroutines.launch
@@ -27,12 +28,23 @@ fun ReservaScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // si tienes correo en el usuario logueado, lo puedes precargar
+    // Usuario actual (viene de MainViewModel, probablemente desde DataStore)
     val currentUser = mainViewModel.currentUser.value
+
+    // Cada vez que tengamos currentUser, rellenamos Session y precargamos correo
     LaunchedEffect(currentUser) {
         currentUser?.let {
+            // Precargar correo en el formulario
             reservaViewModel.onCorreoChange(it.email)
-            reservaViewModel.idUsuario = it.id   // ← id real del backend
+
+            // 🔥 Rellenar Session para que ReservaRepository tenga userId y token
+            Session.userId = it.id
+            Session.correo = it.email
+            Session.nombreUsuario = it.name
+
+            // Si tu modelo de usuario tiene token, ponlo aquí:
+            // (ajusta el nombre del campo según tu User)
+            Session.token = it.token   // <-- cambia "token" si tu propiedad tiene otro nombre
         }
     }
 
@@ -123,10 +135,25 @@ fun ReservaScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (uiState.isLoading)
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White
+                    )
                 else
                     Text("Confirmar reserva")
             }
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = { navController.popBackStack() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Gray
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Volver")
+            }
+
         }
     }
 
@@ -136,7 +163,6 @@ fun ReservaScreen(
             scope.launch {
                 snackbarHostState.showSnackbar(msg)
                 reservaViewModel.clearMessages()
-                // después de crear, navega a lista de reservas (ajusta ruta según tu Screen)
                 navController.navigate(Screen.ReservaList.route)
             }
         }

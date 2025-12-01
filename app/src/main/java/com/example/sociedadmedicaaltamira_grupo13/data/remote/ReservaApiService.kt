@@ -7,24 +7,28 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
+
+
 
 interface ReservaApiService {
 
-    @POST("api/reserva")
+    @POST("api/reservas")
     suspend fun crearReserva(
         @Body request: ReservaRequest
     ): ReservaResponse
 
-    @GET("api/reserva")
+    @GET("api/reservas")
     suspend fun getTodasReservas(): List<ReservaResponse>
 
-    @GET("api/reserva/usuario/{idUsuario}")
+    @GET("api/reservas/por-usuario")
     suspend fun getReservasPorUsuario(
-        @Path("idUsuario") idUsuario: Long
+        @Query("correo") correo: String
     ): List<ReservaResponse>
 
-    @DELETE("api/reserva/{id}")
+    @DELETE("api/reservas/{id}")
     suspend fun eliminarReserva(
         @Path("id") id: Long
     )
 }
+

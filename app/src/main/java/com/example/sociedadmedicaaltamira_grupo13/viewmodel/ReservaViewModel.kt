@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.ReservaRequest
 import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.ReservaResponse
 import com.example.sociedadmedicaaltamira_grupo13.repository.ReservaRepository
+import com.example.sociedadmedicaaltamira_grupo13.session.Session
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +47,8 @@ class ReservaViewModel(
     var especialidad by mutableStateOf("")
         private set
 
-    var idUsuario: Long = 0L   // cuando tengas id de usuario logueado, lo asignas desde fuera
+    // Ya NO guardamos idUsuario aquí, lo tomamos desde Session
+    // var idUsuario: Long = 0L
 
     // ───────── Actualizadores de formulario ─────────
     fun onNombreChange(v: String) { nombre = v }
@@ -66,6 +68,14 @@ class ReservaViewModel(
     fun crearReserva() {
         val edadInt = edad.toIntOrNull() ?: 0
 
+        val userId = Session.userId
+        if (userId == null) {
+            _uiState.value = _uiState.value.copy(
+                error = "No se encontró el usuario en sesión. Inicia sesión nuevamente."
+            )
+            return
+        }
+
         val request = ReservaRequest(
             nombre = nombre,
             apellido = apellido,
@@ -75,11 +85,15 @@ class ReservaViewModel(
             correo = correo,
             fechaReserva = fechaReserva,
             especialidad = especialidad,
-            idUsuario = idUsuario
+            idUsuario = userId
         )
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null,
+                successMessage = null
+            )
             try {
                 repository.crearReserva(request)
 
@@ -94,7 +108,7 @@ class ReservaViewModel(
                 edad = ""
                 tipoDocumento = ""
                 numeroDocumento = ""
-                // mantenemos correo si quieres
+                // puedes dejar el correo si quieres
                 fechaReserva = ""
                 especialidad = ""
 
@@ -108,11 +122,12 @@ class ReservaViewModel(
     }
 
     // ───────── Cargar reservas de un usuario (Mis reservas) ─────────
-    fun cargarReservasUsuario(idUsuario: Long) {
+    fun cargarReservasUsuario() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val lista = repository.obtenerReservasPorUsuario(idUsuario)
+                // El repo ahora usa Session.userId por dentro
+                val lista = repository.obtenerReservasPorUsuario()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     reservas = lista

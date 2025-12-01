@@ -112,14 +112,14 @@ fun ProfileScreen(
             )
 
             Text(
-                user!!.name,
+                user.name,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF263238),
                 textAlign = TextAlign.Center
             )
             Text(
-                user!!.email,
+                user.email,
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
@@ -134,14 +134,15 @@ fun ProfileScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Nombre: ${user!!.name}", fontSize = 16.sp)
-                    Text("Correo: ${user!!.email}", fontSize = 16.sp)
+                    Text("Nombre: ${user.name}", fontSize = 16.sp)
+                    Text("Correo: ${user.email}", fontSize = 16.sp)
                 }
             }
         } else {
             Text("No hay usuario autenticado.", color = Color.Gray, fontSize = 16.sp)
         }
 
+        // Botón para ir a Login / Registro
         LoadingButton(
             text = "Ir a Login / Registro",
             colors = ButtonDefaults.buttonColors(containerColor = AzulPrimario),
@@ -149,6 +150,17 @@ fun ProfileScreen(
         ) {
             delay(600)
             navController.navigate(Screen.Auth.route)
+        }
+
+        // 🔵 NUEVO BOTÓN: Mis reservas
+        LoadingButton(
+            text = "Mis reservas",
+            enabled = user != null, // solo habilitado si hay usuario
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+            modifier = Modifier.fillMaxWidth(0.9f)
+        ) {
+            delay(400)
+            navController.navigate(Screen.ReservaList.route)
         }
     }
 }

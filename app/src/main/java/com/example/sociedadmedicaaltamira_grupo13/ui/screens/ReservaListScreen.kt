@@ -4,10 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +33,7 @@ import com.example.sociedadmedicaaltamira_grupo13.viewmodel.ReservaViewModel
 @Composable
 fun ReservaListScreen(
     navController: NavController,
-    viewModel: MainViewModel,                    // <- nombre estándar
+    viewModel: MainViewModel,
     reservaViewModel: ReservaViewModel = viewModel()
 ) {
     val uiState by reservaViewModel.uiState.collectAsState()
@@ -45,7 +49,7 @@ fun ReservaListScreen(
         if (esAdmin) {
             reservaViewModel.cargarTodasReservas()
         } else {
-            reservaViewModel.cargarReservasUsuario(idUsuario = currentUser.id)
+            reservaViewModel.cargarReservasUsuario()
         }
     }
 
@@ -54,6 +58,14 @@ fun ReservaListScreen(
             TopAppBar(
                 title = {
                     Text(if (esAdmin) "Todas las reservas" else "Mis reservas")
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
                 }
             )
         }

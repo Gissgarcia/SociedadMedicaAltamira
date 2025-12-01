@@ -3,6 +3,7 @@ package com.example.sociedadmedicaaltamira_grupo13.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sociedadmedicaaltamira_grupo13.repository.AuthRepository
+import com.example.sociedadmedicaaltamira_grupo13.session.Session
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ data class AuthState(
     val password: String = "",
     val isLoading: Boolean = false,
     val message: String? = null,
-    // NUEVO: datos reales devueltos por la API
+
+    // Datos devueltos por la API
     val userId: Long? = null,
     val role: String? = null,
     val token: String? = null
@@ -27,7 +29,7 @@ class AuthViewModel(
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
-    // ----- setters que usa AuthScreen -----
+    // ---- setters que usa AuthScreen ----
     fun updateName(value: String) {
         _state.value = _state.value.copy(name = value)
     }
@@ -44,7 +46,7 @@ class AuthViewModel(
         _state.value = _state.value.copy(message = null)
     }
 
-    // ----- LOGIN -----
+    // -------------------- LOGIN --------------------
     fun login() {
         val current = _state.value
         if (current.email.isBlank() || current.password.isBlank()) {
@@ -54,11 +56,21 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _state.value = current.copy(isLoading = true, message = null)
+
             try {
                 val response = repository.login(
                     email = current.email,
                     password = current.password
                 )
+
+                // -----------------------------------------
+                // 🔥 Guardar datos reales en Session (TOKEN + ID)
+                // -----------------------------------------
+                Session.token = response.token
+                Session.userId = response.userId
+                Session.correo = response.email
+                Session.nombreUsuario = response.name
+                // -----------------------------------------
 
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -79,7 +91,7 @@ class AuthViewModel(
         }
     }
 
-    // ----- REGISTRO -----
+    // -------------------- REGISTRO --------------------
     fun register() {
         val current = _state.value
         if (current.name.isBlank() || current.email.isBlank() || current.password.isBlank()) {
@@ -89,12 +101,22 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _state.value = current.copy(isLoading = true, message = null)
+
             try {
                 val response = repository.register(
                     nombre = current.name,
                     email = current.email,
                     password = current.password
                 )
+
+                // -----------------------------------------
+                // 🔥 Guardar datos reales en Session (TOKEN + ID)
+                // -----------------------------------------
+                Session.token = response.token
+                Session.userId = response.userId
+                Session.correo = response.email
+                Session.nombreUsuario = response.name
+                // -----------------------------------------
 
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -107,7 +129,7 @@ class AuthViewModel(
                 )
 
             } catch (e: Exception) {
-                _state.value = current.copy(
+                _state.value = _state.value.copy(
                     isLoading = false,
                     message = e.message ?: "Error al registrar usuario"
                 )
