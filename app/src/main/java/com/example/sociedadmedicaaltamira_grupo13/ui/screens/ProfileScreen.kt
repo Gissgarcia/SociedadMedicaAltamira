@@ -82,7 +82,7 @@ fun ProfileScreen(
     navController: NavController,
     viewModel: MainViewModel        // <- nombre estándar
 ) {
-    val user: User? by viewModel.currentUser.collectAsState(initial = null)
+    val user: User? = viewModel.currentUser.value
 
     Column(
         modifier = Modifier
