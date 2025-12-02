@@ -92,6 +92,7 @@ dependencies {
     // Coroutines test (para viewModelScope, Dispatchers.Main, etc.)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.0.0-alpha.14")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.3")
 
     // Instrumented tests (Android)
     androidTestImplementation(libs.androidx.junit)

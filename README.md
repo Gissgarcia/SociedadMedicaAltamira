@@ -1,92 +1,241 @@
-# Proyecto: Sociedad Médica Altamira
+Sociedad Médica Altamira (App Móvil Android)
+🏥 Sociedad Médica Altamira — App Móvil
 
-## Integrantes del equipo
-- **Gissel Garcia**
-- **Genesis Rojas**
+Aplicación móvil desarrollada en Android Studio, utilizando Kotlin, Jetpack Compose, MVVM, persistencia local con DataStore, y consumo de APIs REST para la gestión de usuarios, reservas y contacto.
 
-## Descripción general del proyecto
-**Sociedad Médica Altamira** es una aplicación móvil desarrollada en **Kotlin** con **Jetpack Compose**, diseñada para mejorar la experiencia de los pacientes y profesionales de salud de la clínica “Altamira”.  
-Su objetivo principal es ofrecer una interfaz moderna, intuitiva y segura para **gestionar reservas médicas, mantener perfiles de usuario, acceder a servicios médicos y configurar preferencias personalizadas**.  
+Este proyecto corresponde al desarrollo del módulo móvil de la plataforma Sociedad Médica Altamira, permitiendo a los usuarios:
 
-El proyecto fue desarrollado siguiendo el patrón **MVVM (Model–View–ViewModel)** y buenas prácticas de arquitectura, lo que facilita la mantenibilidad, modularidad y escalabilidad del código.  
-Además, la aplicación hace uso de recursos nativos del dispositivo (como **cámara** y **almacenamiento**) e implementa **persistencia local** mediante **DataStore Preferences**.  
+Registrarse e iniciar sesión
 
-## Funcionalidades implementadas
+Crear reservas médicas
 
-### Autenticación de usuarios
-- Registro e inicio de sesión con validaciones de campos y mensajes visuales de error.  
-- Persistencia de sesión activa durante el uso de la app.  
+Visualizar sus reservas
 
-### Gestión de reservas médicas
-- Creación, edición y eliminación de reservas médicas.  
-- Validaciones automáticas de datos (fecha, hora, especialidad).  
-- Confirmaciones visuales con animaciones.  
+Acceder a su perfil
 
-### Perfil del usuario
-- Visualización y edición de información personal.  
-- Integración con cámara y galería del dispositivo para foto de perfil.  
+Usar modo especial (configuración persistente)
 
-### Configuración de la aplicación
-- Activación del **Modo Especial** con almacenamiento persistente mediante **DataStore**.  
+Navegar entre pantallas de manera fluida mediante Compose Navigation
 
-### Navegación y estructura visual
-- Navegación fluida entre pantallas con **NavHostController**.  
-- Diseño modular con pantallas independientes (`AuthScreen`, `HomeScreen`, `ReservaScreen`, `ProfileScreen`, `SettingsScreen`).  
-- Uso de **Material Design 3** y temas personalizados.  
+🛠️ Tecnologías utilizadas
+Frontend móvil
 
-### Persistencia local
-- **DataStore Preferences** para guardar configuraciones del usuario.  
-- Estructura lista para integrar **Room** como base de datos local.  
+Kotlin
 
-### Recursos nativos integrados
-- **Cámara:** captura de imagen de perfil con `FileProvider`.  
-- **Almacenamiento:** selección de imágenes desde la galería.  
+Jetpack Compose
 
-## Arquitectura del proyecto
+Material 3
 
-Estructura modular siguiendo el patrón **MVVM**:
+Compose Navigation
 
-```
-com.example.sociedadmedicaaltamira_grupo13
-│
-├── data/                → Persistencia local (DataStore)
-├── model/               → Modelos de datos
-├── repository/          → Lógica de negocio
-├── ui/
-│   ├── screens/         → Pantallas principales (Compose)
-│   ├── components/      → Elementos visuales reutilizables
-│   └── theme/           → Colores, tipografía y estilos
-├── viewmodel/           → Manejo de estado y validaciones
-└── navigation/          → Control de rutas
-```
+ViewModel (MVVM)
 
----
+StateFlow / MutableStateFlow
 
-## Pasos para ejecutar el proyecto
+DataStore Preferences
 
-### **Requisitos previos**
-1. Tener instalado **Android Studio**.  
-2. Configurar **Android SDK 24+**.  
-3. Conexión a Internet para sincronizar dependencias.  
-4. Emulador Android o dispositivo físico con cámara habilitada.  
+Coil (carga de imágenes)
 
-### **Ejecución paso a paso**
-1. Clonar o importar el proyecto:
-   ```bash
-   git clone https://github.com/Gissgarcia/SociedadMedicaAltamira.git
-   ```
-2. Sincronizar con Gradle → *File → Sync Project with Gradle Files*.  
-3. Verificar dependencias de Compose, Navigation, DataStore y ViewModel.  
-4. Conceder permisos de cámara y almacenamiento.  
-5. Ejecutar el proyecto con *Run App*.  
-6. Probar: registrar usuario, crear reserva, actualizar perfil y activar modo especial.  
+Backend consumido
+
+La app se conecta a tres microservicios:
+
+API Usuario → Registro, login, roles
+
+API Reserva → Creación y listado de reservas
+
+API Contacto → Envío de formulario desde la app
+
+🧱 Arquitectura
+
+La app implementa el patrón MVVM completo:
+
+📦 data/
+├── remote/ (RetrofitClient + servicios API)
+├── repository/ (ReservaRepository, UsuarioRepository, etc.)
+📦 ui/
+├── screens/ (Compose UI)
+📦 viewmodel/
+├── MainViewModel
+├── ReservaViewModel
+├── LoginViewModel
+📦 datastore/
+├── SettingsDataStore
+
+Ventajas de MVVM aplicadas al proyecto
+
+UI reactiva con StateFlow
+
+ViewModels mantienen estado aunque cambie la configuración
+
+Repositorios permiten desacoplar la lógica de datos del UI
+
+Tests unitarios fáciles de implementar (como lo exige la guía)
+
+🔐 Login & Manejo de Sesión
+
+El login persiste:
+
+ID de usuario
+
+correo
+
+token
+
+rol
+
+Todo esto gestionado por:
+
+Session.kt
+MainViewModel.kt
+SettingsDataStore.kt
+
+📅 Reservas
+
+El usuario puede:
+
+Crear una nueva reserva
+
+Ver sus reservas propias
+
+Los administradores pueden ver TODAS las reservas (rol = ADMIN)
+
+La pantalla está compuesta por:
+
+ReservaScreen.kt
+ReservaViewModel.kt
+ReservaRepository.kt
+
+🎨 Interfaz de Usuario
+
+Construida 100% en Jetpack Compose
+
+Componentes Material 3
+
+Navegación tipo NavHost:
+
+Home
+
+Login
+
+Registro
+
+Reserva
+
+Mis Reservas
+
+Perfil
+
+Administrador
+
+📍 Persistencia Local — DataStore
+
+Se utiliza DataStore para guardar:
+
+Modo especial (boolean persistente)
+
+Sesión del usuario
+
+Preferencias simples
+
+Esto permite que la app recuerde configuraciones incluso después de cerrar.
+
+🧪 Pruebas (Tests)
+
+Este proyecto incluye pruebas unitarias siguiendo la guía 3.2.2 DUOC:
+
+✔ Tests ViewModel (Unit Tests)
+
+Archivo:
+ReservaViewModelTest.kt
+
+Cubren:
+
+Crear reserva (flujo completo, successMessage, reset de formulario)
+
+Cargar reservas del usuario
+
+Manejo de errores, loading y estados del UI
+
+✔ Tests Repository (MockK + Retrofit mockeado)
+
+Archivo:
+ReservaRepositoryTest.kt
+
+Cubren:
+
+crearReserva() retorna el objeto esperado
+
+obtenerReservasPorUsuario() retorna lista esperada
+
+Mock de RetrofitClient y ReservaApiService
+
+✔ Tests de lógica (Parte 7)
+
+Archivo:
+MainViewModelTest.kt
+
+currentUser inicial = null
+
+setCurrentUser() asigna usuario
+
+logout() limpia sesión
+
+✔ Tests UI (Opcional / Entregables)
+
+Archivo:
+ReservaScreenTest.kt
+
+Visualización de campos en pantalla
+
+Escritura en TextField
+
+Validación de “Confirmar Reserva”
+
+Nota: los tests UI requieren emulador para ejecutarse.
+
+✔ Todos los tests compilados y documentados.
+
+📱 Generación de APK
+
+Para obtener el APK:
+
+Build → Build Bundle(s) / APK(s) → Build APK(s)
 
 
-## Herramientas utilizadas
-- **Lenguaje:** Kotlin  
-- **Framework:** Jetpack Compose  
-- **Arquitectura:** MVVM  
-- **Persistencia:** DataStore Preferences  
-- **Control de versiones:** Git y GitHub  
-- **Planificación:** Trello  
-- **Diseño:** Material Design 3  
+El archivo generado queda disponible en:
+
+app/build/outputs/apk/debug/app-debug.apk
+
+🚀 Cómo ejecutar el proyecto
+
+Clonar repositorio
+
+Abrir en Android Studio (Giraffe o superior)
+
+Instalar dependencias con Gradle Sync
+
+Crear el archivo local.properties con:
+
+sdk.dir=C:\\Users\\TU_USUARIO\\AppData\\Local\\Android\\Sdk
+
+
+Ejecutar en emulador o dispositivo físico
+
+📚 Requisitos cumplidos (según Encargo DUOC)
+
+✔ MVVM implementado
+✔ Repository + Retrofit + APIs externas
+✔ Jetpack Compose completo
+✔ DataStore
+✔ Lógica distribuida
+✔ Navegación
+✔ Pruebas unitarias (ViewModel, Repository, Lógica)
+✔ APK generado
+
+👨‍💻 Autores
+
+Desarrollado por Genesis Rojas
+Carrera: Ingeniería en Informática
+Institución: DUOC UC
+Asignatura: DSY1105 — Desarrollo de Software Móvil
