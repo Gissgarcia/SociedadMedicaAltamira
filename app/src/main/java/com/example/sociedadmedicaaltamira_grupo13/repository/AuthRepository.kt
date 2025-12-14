@@ -1,41 +1,61 @@
 package com.example.sociedadmedicaaltamira_grupo13.repository
 
 import com.example.sociedadmedicaaltamira_grupo13.data.remote.RetrofitClient
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.LoginRequest
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.RegistroRequest
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.UsuarioResponse
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.UsuarioApiService
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.*
 
-/**
- * Habla con la API de usuario usando Retrofit.
- * La UI nunca toca Retrofit directo, siempre pasa por aquí.
- */
 class AuthRepository {
 
-    private val usuarioApi = RetrofitClient.createUsuarioService()
+    // ✅ como tu RetrofitClient usa createUsuarioService()
+    private val api: UsuarioApiService = RetrofitClient.createUsuarioService()
 
     suspend fun login(email: String, password: String): UsuarioResponse {
-        val request = LoginRequest(
-            email = email,
-            password = password
+        return api.login(
+            LoginRequest(
+                email = email.trim(),
+                password = password
+            )
         )
-        return usuarioApi.login(request)
     }
 
-    suspend fun register(
-        nombre: String,
-        email: String,
-        password: String
-    ): UsuarioResponse {
-        // Como tu pantalla solo pide nombre/email/password,
-        // llenamos los otros campos con vacío por ahora.
-        val request = RegistroRequest(
-            nombre = nombre,
-            apellido = "",
-            rut = "",
-            email = email,
-            telefono = "",
-            password = password
+    suspend fun register(name: String, email: String, password: String): UsuarioResponse {
+        return api.register(
+            RegistroRequest(
+                name = name.trim(),
+                email = email.trim(),
+                password = password
+            )
         )
-        return usuarioApi.registrarUsuario(request)
+    }
+
+    suspend fun forgotPassword(email: String): SimpleMessageResponse {
+        return api.forgotPassword(
+            ForgotPasswordRequest(email.trim())
+        )
+    }
+
+    suspend fun resetPassword(token: String, newPassword: String): SimpleMessageResponse {
+        return api.resetPassword(
+            ResetPasswordRequest(
+                token = token.trim(),
+                newPassword = newPassword
+            )
+        )
+    }
+
+    // ⚠️ updateProfile requiere JWT -> por eso creamos servicio con tokenProvider
+    suspend fun updateProfile(jwt: String, name: String, email: String): UsuarioResponse {
+        val cleanJwt = jwt.removePrefix("Bearer ").trim()
+
+        val apiWithToken = RetrofitClient.createUsuarioService(tokenProvider = { cleanJwt })
+
+        return apiWithToken.updateProfile(
+            // puedes enviar token por header manual o dejar que el interceptor lo agregue
+            token = "Bearer $cleanJwt",
+            body = UpdateProfileRequest(
+                name = name.trim(),
+                email = email.trim()
+            )
+        )
     }
 }

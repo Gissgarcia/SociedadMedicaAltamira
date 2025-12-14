@@ -3,10 +3,9 @@ package com.example.sociedadmedicaaltamira_grupo13.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sociedadmedicaaltamira_grupo13.repository.AuthRepository
-import com.example.sociedadmedicaaltamira_grupo13.session.Session
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AuthState(
@@ -16,124 +15,119 @@ data class AuthState(
     val isLoading: Boolean = false,
     val message: String? = null,
 
-    // Datos devueltos por la API
     val userId: Long? = null,
     val role: String? = null,
     val token: String? = null
 )
 
-class AuthViewModel(
-    private val repository: AuthRepository = AuthRepository()
-) : ViewModel() {
+class AuthViewModel : ViewModel() {
+
+    // ✅ Usa tu repo real
+    private val repo = AuthRepository()
 
     private val _state = MutableStateFlow(AuthState())
-    val state: StateFlow<AuthState> = _state.asStateFlow()
+    val state: StateFlow<AuthState> = _state
 
-    // ---- setters que usa AuthScreen ----
-    fun updateName(value: String) {
-        _state.value = _state.value.copy(name = value)
-    }
+    fun updateName(v: String) = _state.update { it.copy(name = v) }
+    fun updateEmail(v: String) = _state.update { it.copy(email = v) }
+    fun updatePassword(v: String) = _state.update { it.copy(password = v) }
 
-    fun updateEmail(value: String) {
-        _state.value = _state.value.copy(email = value)
-    }
+    fun clearMessage() = _state.update { it.copy(message = null) }
 
-    fun updatePassword(value: String) {
-        _state.value = _state.value.copy(password = value)
-    }
+    // ✅ útil para cuando cambias entre Login/Registro o después de reset
+    fun clearPassword() = _state.update { it.copy(password = "") }
 
-    fun clearMessage() {
-        _state.value = _state.value.copy(message = null)
-    }
+    fun login() = viewModelScope.launch {
+        val email = state.value.email.trim()
+        val pass = state.value.password
 
-    // -------------------- LOGIN --------------------
-    fun login() {
-        val current = _state.value
-        if (current.email.isBlank() || current.password.isBlank()) {
-            _state.value = current.copy(message = "Correo y contraseña son obligatorios")
-            return
-        }
+        _state.update { it.copy(isLoading = true, message = null) }
 
-        viewModelScope.launch {
-            _state.value = current.copy(isLoading = true, message = null)
-
-            try {
-                val response = repository.login(
-                    email = current.email,
-                    password = current.password
-                )
-
-                // -----------------------------------------
-                // 🔥 Guardar datos reales en Session (TOKEN + ID)
-                // -----------------------------------------
-                Session.token = response.token
-                Session.userId = response.userId
-                Session.correo = response.email
-                Session.nombreUsuario = response.name
-                // -----------------------------------------
-
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    message = "Login exitoso",
-                    name = response.name,
-                    email = response.email,
-                    userId = response.userId,
-                    role = response.role,
-                    token = response.token
-                )
-
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    message = e.message ?: "Error al iniciar sesión"
-                )
+        runCatching { repo.login(email, pass) }
+            .onSuccess { res ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        message = "Login exitoso",
+                        userId = res.userId,
+                        role = res.role,
+                        token = res.token
+                    )
+                }
             }
-        }
+            .onFailure { e ->
+                _state.update { it.copy(isLoading = false, message = e.message ?: "Error en login") }
+            }
     }
 
-    // -------------------- REGISTRO --------------------
-    fun register() {
-        val current = _state.value
-        if (current.name.isBlank() || current.email.isBlank() || current.password.isBlank()) {
-            _state.value = current.copy(message = "Nombre, correo y contraseña son obligatorios")
-            return
-        }
+    fun register() = viewModelScope.launch {
+        val name = state.value.name.trim()
+        val email = state.value.email.trim()
+        val pass = state.value.password
 
-        viewModelScope.launch {
-            _state.value = current.copy(isLoading = true, message = null)
+        _state.update { it.copy(isLoading = true, message = null) }
 
-            try {
-                val response = repository.register(
-                    nombre = current.name,
-                    email = current.email,
-                    password = current.password
-                )
-
-                // -----------------------------------------
-                // 🔥 Guardar datos reales en Session (TOKEN + ID)
-                // -----------------------------------------
-                Session.token = response.token
-                Session.userId = response.userId
-                Session.correo = response.email
-                Session.nombreUsuario = response.name
-                // -----------------------------------------
-
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    message = "Registro exitoso",
-                    name = response.name,
-                    email = response.email,
-                    userId = response.userId,
-                    role = response.role,
-                    token = response.token
-                )
-
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    message = e.message ?: "Error al registrar usuario"
-                )
+        runCatching { repo.register(name, email, pass) }
+            .onSuccess { res ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        message = "Registro exitoso",
+                        userId = res.userId,
+                        role = res.role,
+                        token = res.token
+                    )
+                }
             }
-        }
+            .onFailure { e ->
+                _state.update { it.copy(isLoading = false, message = e.message ?: "Error en registro") }
+            }
+    }
+
+    // ✅ forgot password -> muestra token demo (si tu backend lo devuelve)
+    fun forgotPassword(email: String) = viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, message = null) }
+
+        runCatching { repo.forgotPassword(email.trim()) }
+            .onSuccess { res ->
+                val token = res.token.orEmpty()
+                val msg = buildString {
+                    append(res.message ?: "Solicitud enviada.")
+                    if (token.isNotBlank()) append("\nToken (demo): $token")
+                }
+                _state.update { it.copy(isLoading = false, message = msg) }
+            }
+            .onFailure { e ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        message = e.message ?: "Error al recuperar contraseña"
+                    )
+                }
+            }
+    }
+
+    // ✅ reset password (por si haces pantalla Reset o lo llamas desde Forgot)
+    fun resetPassword(token: String, newPassword: String) = viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, message = null) }
+
+        runCatching { repo.resetPassword(token.trim(), newPassword) }
+            .onSuccess { res ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        message = res.message ?: "Contraseña actualizada correctamente"
+                    )
+                }
+                clearPassword()
+            }
+            .onFailure { e ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        message = e.message ?: "Error al restablecer contraseña"
+                    )
+                }
+            }
     }
 }

@@ -1,34 +1,31 @@
 package com.example.sociedadmedicaaltamira_grupo13.data.remote
 
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.LoginRequest
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.RegistroRequest
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.UsuarioListadoResponse
-import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.UsuarioResponse
+import com.example.sociedadmedicaaltamira_grupo13.data.remote.dto.*
 import retrofit2.http.Body
-import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.PUT
 
 interface UsuarioApiService {
 
-    @POST("api/usuario/registro")
-    suspend fun registrarUsuario(
-        @Body request: RegistroRequest
+    @POST("login")
+    suspend fun login(@Body body: LoginRequest): UsuarioResponse
+
+    @POST("registro")
+    suspend fun register(@Body body: RegistroRequest): UsuarioResponse
+
+    // ✅ NUEVO: forgot
+    @POST("password/forgot")
+    suspend fun forgotPassword(@Body body: ForgotPasswordRequest): SimpleMessageResponse
+
+    // ✅ NUEVO: reset
+    @POST("password/reset")
+    suspend fun resetPassword(@Body body: ResetPasswordRequest): SimpleMessageResponse
+
+    // ✅ NUEVO: update profile (requiere JWT)
+    @PUT("me")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Body body: UpdateProfileRequest
     ): UsuarioResponse
-
-    @POST("api/usuario/login")
-    suspend fun login(
-        @Body request: LoginRequest
-    ): UsuarioResponse
-
-    @GET("api/usuario/me")
-    suspend fun getPerfil(): UsuarioResponse
-
-    @GET("api/usuario")
-    suspend fun getUsuarios(): List<UsuarioListadoResponse>
-
-    @GET("api/usuario/{id}")
-    suspend fun getUsuarioPorId(
-        @Path("id") id: Long
-    ): UsuarioListadoResponse
 }
