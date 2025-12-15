@@ -23,7 +23,6 @@ import com.example.sociedadmedicaaltamira_grupo13.data.SettingsDataStore
 import com.example.sociedadmedicaaltamira_grupo13.model.User
 import com.example.sociedadmedicaaltamira_grupo13.navigation.Screen.Screen
 import com.example.sociedadmedicaaltamira_grupo13.ui.screens.AuthScreen
-import com.example.sociedadmedicaaltamira_grupo13.ui.screens.ForgotPasswordScreen // ✅ NUEVO
 import com.example.sociedadmedicaaltamira_grupo13.ui.screens.HomeScreen
 import com.example.sociedadmedicaaltamira_grupo13.ui.screens.ModoEspecialScreen
 import com.example.sociedadmedicaaltamira_grupo13.ui.screens.ProfileScreen
@@ -43,10 +42,12 @@ class MainActivity : ComponentActivity() {
                 val viewModel: MainViewModel = viewModel()
                 val navController = rememberNavController()
 
+                // 🔐 DataStore para restaurar sesión
                 val context = LocalContext.current
                 val settingsDataStore = remember { SettingsDataStore(context) }
                 var hasCheckedSession by remember { mutableStateOf(false) }
 
+                // Cargar sesión guardada (si existe) y setear MainViewModel.currentUser
                 LaunchedEffect(Unit) {
                     settingsDataStore.userSessionFlow.collectLatest { session ->
                         if (session != null) {
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Mientras no terminamos de revisar DataStore, mostrar loading
                 if (!hasCheckedSession) {
                     Surface(modifier = Modifier.fillMaxSize()) {
                         Box(
@@ -74,12 +76,11 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 } else {
-                    val startDestination = if (viewModel.currentUser.value != null) {
-                        Screen.Profile.route
-                    } else {
-                        Screen.Auth.route
-                    }
 
+                    // ✅ SIEMPRE iniciar en Home
+                    val startDestination = Screen.Home.route
+
+                    // 🧭 Scaffold con barra inferior compartida (solo Home y Profile)
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
@@ -121,14 +122,23 @@ class MainActivity : ComponentActivity() {
                             startDestination = startDestination,
                             modifier = Modifier.padding(innerPadding)
                         ) {
-                            composable(Screen.Home.route) { HomeScreen(navController, viewModel) }
-                            composable(Screen.Profile.route) { ProfileScreen(navController, viewModel) }
-                            composable(Screen.Reserva.route) { ReservaScreen(navController, viewModel) }
-                            composable(Screen.Auth.route) { AuthScreen(navController, viewModel) }
-                            composable(Screen.ModoEspecial.route) { ModoEspecialScreen(navController) }
-                            composable(Screen.ReservaList.route) { ReservaListScreen(navController, viewModel) }
-                            composable(Screen.ForgotPassword.route) {
-                                ForgotPasswordScreen(navController)
+                            composable(Screen.Home.route) {
+                                HomeScreen(navController, viewModel)
+                            }
+                            composable(Screen.Profile.route) {
+                                ProfileScreen(navController, viewModel)
+                            }
+                            composable(Screen.Reserva.route) {
+                                ReservaScreen(navController, viewModel)
+                            }
+                            composable(Screen.Auth.route) {
+                                AuthScreen(navController, viewModel)
+                            }
+                            composable(Screen.ModoEspecial.route) {
+                                ModoEspecialScreen(navController)
+                            }
+                            composable(Screen.ReservaList.route) {
+                                ReservaListScreen(navController, viewModel)
                             }
                         }
                     }

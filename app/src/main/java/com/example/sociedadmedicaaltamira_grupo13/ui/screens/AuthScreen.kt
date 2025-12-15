@@ -1,5 +1,3 @@
-
-
 package com.example.sociedadmedicaaltamira_grupo13.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
@@ -45,18 +43,23 @@ fun AuthScreen(
     var isLogin by remember { mutableStateOf(true) }
     val s by vm.state.collectAsState()
 
+    // Paleta local
     val AzulPrimario = Color(0xFF0D47A1)
     val AzulClaro = Color(0xFF1976D2)
 
+    // Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // DataStore para guardar la sesión
     val context = LocalContext.current
     val settingsDataStore = remember { SettingsDataStore(context) }
 
+    // Reaccionar a cambios en el mensaje del ViewModel (éxito / error)
     LaunchedEffect(s.message) {
         val msg = s.message ?: return@LaunchedEffect
 
+        // Guardamos en variables locales para que Kotlin pueda hacer smart cast
         val userId = s.userId
         val role = s.role
         val token = s.token
@@ -64,6 +67,7 @@ fun AuthScreen(
         if (msg.contains("exitoso", ignoreCase = true) &&
             userId != null && role != null && token != null
         ) {
+            // Construimos usuario REAL con datos del backend
             val user = User(
                 id = userId,
                 name = s.name,
@@ -73,6 +77,7 @@ fun AuthScreen(
             )
             viewModel.setCurrentUser(user)
 
+            // Guardar sesión en DataStore + mostrar snackbar + navegar
             scope.launch {
                 settingsDataStore.saveUserSession(
                     UserSession(
@@ -97,6 +102,7 @@ fun AuthScreen(
                 }
             }
         } else {
+            // Mensaje de error u otro mensaje que no sea "exitoso"
             if (!msg.contains("exitoso", ignoreCase = true)) {
                 scope.launch {
                     snackbarHostState.showSnackbar(
@@ -131,6 +137,7 @@ fun AuthScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
+            // Toggle estilizado Login / Registro
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -158,6 +165,7 @@ fun AuthScreen(
                 ) { Text("Registro") }
             }
 
+            // Campos
             if (!isLogin) {
                 OutlinedTextField(
                     value = s.name,
@@ -184,21 +192,15 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ✅ Mensaje aclaratorio de rol automático en Registro
-            if (!isLogin) {
-                Text(
-                    text = "Tu cuenta se registrará como PACIENTE automáticamente.",
-                    color = Color.DarkGray,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
             AnimatedVisibility(visible = s.message != null) {
                 Text(s.message ?: "", color = AzulPrimario)
             }
 
+            // Botón principal
             Button(
-                onClick = { if (isLogin) vm.login() else vm.register() },
+                onClick = {
+                    if (isLogin) vm.login() else vm.register()
+                },
                 enabled = s.email.isNotBlank() && s.password.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = AzulPrimario)
@@ -209,16 +211,7 @@ fun AuthScreen(
                     Text(if (isLogin) "Entrar" else "Crear cuenta", color = Color.White)
             }
 
-            // ✅ NUEVO BOTÓN: SOLO EN LOGIN
-            if (isLogin) {
-                TextButton(
-                    onClick = { navController.navigate(Screen.ForgotPassword.route) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("¿Olvidaste tu contraseña?", color = AzulPrimario)
-                }
-            }
-
+            // Botón volver (animado)
             AnimatedBackButton(
                 onClick = { navController.popBackStack() },
                 color = AzulPrimario,
@@ -264,9 +257,10 @@ private fun AnimatedBackButton(
     }
 }
 
+/* Snackbar de éxito con ícono */
 @Composable
 private fun SuccessSnackbar(data: SnackbarData) {
-    val success = Color(0xFF2E7D32)
+    val success = Color(0xFF2E7D32) // verde
     val onSuccess = Color.White
 
     Surface(

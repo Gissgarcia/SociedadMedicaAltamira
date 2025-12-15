@@ -1,38 +1,48 @@
 package com.example.sociedadmedicaaltamira_grupo13.data.remote.dto
+import com.google.gson.annotations.SerializedName
+// Lo que envías al registrarte
+data class RegistroRequest(
+    @SerializedName("name")
+    val nombre: String,
 
-// ✅ Requests actuales (si ya los tienes, puedes dejarlos igual)
+    @SerializedName("lastName")
+    val apellido: String,
+
+    @SerializedName("rut")
+    val rut: String,
+
+    @SerializedName("email")
+    val email: String,
+
+    @SerializedName("phone")
+    val telefono: String,
+
+    @SerializedName("password")
+    val password: String
+)
+
+// Lo que envías al hacer login
 data class LoginRequest(
     val email: String,
     val password: String
 )
 
-data class RegistroRequest(
+// Lo que el backend te devuelve (ajusta campos a tu respuesta real)
+data class UsuarioResponse(
+    val userId: Long,
     val name: String,
     val email: String,
-    val password: String
+    val role: String,
+    val token: String
 )
 
-// ✅ Response de tu backend
-data class UsuarioResponse(
-    val token: String?,
-    val userId: Long?,
-    val name: String?,
-    val email: String?,
-    val role: String?
-)
-data class ForgotPasswordRequest(val email: String)
-
-data class ResetPasswordRequest(
-    val token: String,
-    val newPassword: String
+// Para listar usuarios (admin)
+data class UsuarioListadoResponse(
+    val id: Long,
+    val nombre: String,
+    val apellido: String,
+    val email: String,
+    val telefono: String,
+    val role: String
 )
 
-data class UpdateProfileRequest(
-    val name: String,
-    val email: String
-)
-
-data class SimpleMessageResponse(
-    val message: String? = null,
-    val token: String? = null
-)

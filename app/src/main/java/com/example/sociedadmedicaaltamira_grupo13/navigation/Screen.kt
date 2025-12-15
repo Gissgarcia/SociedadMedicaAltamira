@@ -18,7 +18,4 @@ sealed class Screen(val route: String) {
     data class Detail(val itemId: String) : Screen("detail_page/{itemId}") {
         fun buildRoute(): String = route.replace("{itemId}", itemId)
     }
-
-    object ForgotPassword : Screen("forgot_password")
-
 }
